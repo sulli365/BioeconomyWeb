@@ -69,6 +69,9 @@ for i in company_list:
 
 	company_tavily_dict[i] = tav_info
 
+comp_list_with_tav = [x for x in company_list if x not in no_tavily]
+
+
 # Issue was both finding things in the dict and the fact that i 
 # is alraeady the name of the element in company_list
 
@@ -79,22 +82,122 @@ for i in company_list:
 # requires pip install openai python-dotenv
 
 import os
+
+
+######################## after this was chatgpt output wiht mods as noted
+
+
 from openai import OpenAI
+import json
+
+# Set up your OpenAI API key
 
 client = OpenAI(
-    # This is the default and can be omitted
-    api_key=os.environ.get("OPENAI_API_KEY"),
+    api_key = 'XXX'
 )
 
-response = client.chat.completions.create(
-  model="gpt-4o-mini",
-  response_format={ "type": "json_object" },
-  messages=[
-    {"role": "system", "content": "You are a helpful assistant designed to output JSON."},
-    {"role": "user", "content": "Who won the world series in 2020?"}
-  ]
-)
-print(response.choices[0].message.content)
+
+# openai_api_key = ''
+
+def get_company_location(company_info):
+    """
+    Uses OpenAI's API to determine the location of a company from the provided information.
+
+    Args:
+    company_info (dict): A dictionary containing company name and associated information.
+
+    Returns:
+    dict: A JSON object with the company name as the key and the location as the value.
+    """
+    company_name = company_info.get('name')
+    company_data = company_info.get('info', '')
+
+    # Construct the prompt for the LLM
+    prompt = f"""
+    I have information about a company. Please determine the most specific location of the company from the information provided. If the location cannot be confidently determined, return "Location Unknown".
+
+    Company Name: {company_name}
+    Information: {company_data}
+
+    The output should be in the format of a JSON object where the company name is the key and the location is the value.
+    """
+
+    # Call the OpenAI API to get the response
+    response = client.completions.create(
+        model= "gpt-4o-mini", # "text-davinci-003" decprecated
+        prompt=prompt,
+        max_tokens=150,
+        temperature=0,
+        top_p=1
+    )
+
+    # Extract and format the result
+    result = response.choices[0].text.strip()
+
+    try:
+        # Try to parse the result as JSON
+        location_info = json.loads(result)
+        # Ensure the result is a dictionary with a single entry
+        if isinstance(location_info, dict) and len(location_info) == 1 and company_name in location_info:
+            return location_info
+    except json.JSONDecodeError:
+        pass
+
+    # If parsing fails or the format is incorrect, return "Location Unknown"
+    return {company_name: "Location Unknown"}
+
+# Example usage
+# company_info = {
+#     'name': 'BioTech Innovations',
+#     'info': 'BioTech Innovations specializes in advanced bioengineering solutions. Their headquarters are located in Boston, Massachusetts.'
+# }
+
+# location = get_company_location(company_info)
+# print(json.dumps(location, indent=2))
+
+
+######################## prior to this was chatgpt output
+
+# Going to test chatGPT code quickly
+
+name_temp = comp_list_with_tav[0]
+test_dict = dict(name_temp = company_tavily_dict[comp_list_with_tav[0]])
+test = get_company_location(test_dict)
+
+
+# Next step is to loop through all the companies w/their Tavily info and get the locations out, stored in a new dict
+
+comp_loc_dict = dict()
+
+
+for i in comp_list_with_tav:
+    
+    temp_dict = {i: company_tavily_dict[i]}
+    
+	output = get_company_location(company_info)
+    
+	comp_loc_dict[i] = output[i]
+    
+
+
+
+
+
+
+# client = OpenAI(
+#     # This is the default and can be omitted
+#     api_key=os.environ.get("OPENAI_API_KEY"), #"OPENAI_API_KEY"
+# )
+
+# response = client.chat.completions.create(
+#   model="gpt-4o-mini",
+#   response_format={ "type": "json_object" },
+#   messages=[
+#     {"role": "system", "content": "You are a helpful assistant designed to output JSON."},
+#     {"role": "user", "content": "Who won the world series in 2020?"}
+#   ]
+# )
+# print(response.choices[0].message.content)
 
 
 
