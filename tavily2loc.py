@@ -86,18 +86,18 @@ import os
 
 ######################## after this was chatgpt output wiht mods as noted
 
-
+# import openai
 from openai import OpenAI
 import json
 
 # Set up your OpenAI API key
 
-client = OpenAI(
-    api_key = 'XXX'
-)
+# client = OpenAI(
+#     api_key = 'sk-proj-Q2cKZKeZle0MKVPvJeJ7T3BlbkFJNsaKZfiRXMzLDvfHo3wM'
+# )
 
+# openai.api_key = 'sk-proj-Q2cKZKeZle0MKVPvJeJ7T3BlbkFJNsaKZfiRXMzLDvfHo3wM'
 
-# openai_api_key = ''
 
 def get_company_location(company_info):
     """
@@ -107,97 +107,80 @@ def get_company_location(company_info):
     company_info (dict): A dictionary containing company name and associated information.
 
     Returns:
-    dict: A JSON object with the company name as the key and the location as the value.
+    The location of the company
     """
+    client = OpenAI(
+    api_key = 'sk-proj-XX'
+    )
+
     company_name = company_info.get('name')
     company_data = company_info.get('info', '')
 
     # Construct the prompt for the LLM
-    prompt = f"""
-    I have information about a company. Please determine the most specific location of the company from the information provided. If the location cannot be confidently determined, return "Location Unknown".
+    system_prompt = "You are a helpful assistant. Use the provided information delimited by triple quotes to answer questions. If the answer cannot be found in the articles, write 'I could not find an answer'."
+	  # "You are an helpful assistant that helps extract the locations of companies or other organization from a larger amount of information about the company."
 
-    Company Name: {company_name}
-    Information: {company_data}
-
-    The output should be in the format of a JSON object where the company name is the key and the location is the value.
+    user_prompt = f"""
+	  
+	  Information: {company_data}
+    
     """
 
-    # Call the OpenAI API to get the response
-    response = client.completions.create(
+    # Call the OpenAI API to get the response - changing to use info from https://platform.openai.com/docs/api-reference/chat/create?lang=python
+    response = client.chat.completions.create(
         model= "gpt-4o-mini", # "text-davinci-003" decprecated
-        prompt=prompt,
-        max_tokens=150,
-        temperature=0,
-        top_p=1
+        # prompt=prompt, # pretty sure code is wrong and i need to use "messages"
+        # max_tokens=150,
+        messages=[
+              {'role': 'system', 'content': system_prompt},
+              {'role': 'user', 'content': [
+                  {"type": "text", "text": user_prompt},
+                  {"type": "text", 'text': f"Please determine the most specific location of the {company_name} from the information provided. If the location cannot be confidently determined, return 'Location Unknown'."}
+                  ]}
+        ],
+        temperature=0.2,
+        # top_p=1
     )
 
-    # Extract and format the result
-    result = response.choices[0].text.strip()
 
-    try:
-        # Try to parse the result as JSON
-        location_info = json.loads(result)
-        # Ensure the result is a dictionary with a single entry
-        if isinstance(location_info, dict) and len(location_info) == 1 and company_name in location_info:
-            return location_info
-    except json.JSONDecodeError:
-        pass
+    # Extract and format the result - print(completion.choices[0].message)
+    # result = response.choices[0].text.strip()
+    result = response.choices[0].message.content
+	  
+    return result
 
-    # If parsing fails or the format is incorrect, return "Location Unknown"
-    return {company_name: "Location Unknown"}
-
-# Example usage
-# company_info = {
-#     'name': 'BioTech Innovations',
-#     'info': 'BioTech Innovations specializes in advanced bioengineering solutions. Their headquarters are located in Boston, Massachusetts.'
-# }
-
-# location = get_company_location(company_info)
-# print(json.dumps(location, indent=2))
-
-
-######################## prior to this was chatgpt output
 
 # Going to test chatGPT code quickly
 
-name_temp = comp_list_with_tav[0]
-test_dict = dict(name_temp = company_tavily_dict[comp_list_with_tav[0]])
+test_dict = dict()
+name_temp = comp_list_with_tav[5]
+tav_temp = company_tavily_dict[comp_list_with_tav[5]]
+test_dict[name_temp] = tav_temp
 test = get_company_location(test_dict)
 
+# Example dict code
+
+# keys_to_add = ['foo', 'bar',…] 
+# vals_to_add = ['val1', 'val2', …] 
+# for key, val in zip(keys_to_add, vals_to_add): 
+#     mydict[key] = val
 
 # Next step is to loop through all the companies w/their Tavily info and get the locations out, stored in a new dict
 
-comp_loc_dict = dict()
+# comp_loc_dict = dict()
 
 
-for i in comp_list_with_tav:
+# for i in comp_list_with_tav:
     
-    temp_dict = {i: company_tavily_dict[i]}
+#   temp_dict = {i: company_tavily_dict[i]}
     
-	output = get_company_location(company_info)
+#   output = get_company_location(company_info)
+  
+#   comp_loc_dict[i] = output[i]
     
-	comp_loc_dict[i] = output[i]
-    
 
 
 
-
-
-
-# client = OpenAI(
-#     # This is the default and can be omitted
-#     api_key=os.environ.get("OPENAI_API_KEY"), #"OPENAI_API_KEY"
-# )
-
-# response = client.chat.completions.create(
-#   model="gpt-4o-mini",
-#   response_format={ "type": "json_object" },
-#   messages=[
-#     {"role": "system", "content": "You are a helpful assistant designed to output JSON."},
-#     {"role": "user", "content": "Who won the world series in 2020?"}
-#   ]
-# )
-# print(response.choices[0].message.content)
 
 
 
