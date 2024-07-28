@@ -18,13 +18,19 @@
 
 from google.maps import places_v1
 import json
+import dotenv # pip install python-dotenv
+import os
+dotenv.load_dotenv('/.venv/.env')
+
 
 # SearchTextRequest
 def sample_search_text():
+
+    places_api_key = os.environ.get('bioeconomyweb_google_api_key', 'None')
     # Create a client
     # client = places_v1.PlacesClient()
     client = places_v1.PlacesClient(
-        client_options={"api_key": "XX"}
+        client_options={"api_key": places_api_key}
     )
 
     # Initialize request argument(s)

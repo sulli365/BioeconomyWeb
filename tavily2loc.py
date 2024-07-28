@@ -22,6 +22,10 @@ import pickle
 import pandas as pd
 import numpy as np
 
+import dotenv # pip install python-dotenv
+import os
+dotenv.load_dotenv('/.venv/.env')
+
 # needed to install pandas dependency 'openpyxl' --> pip install openpyxl
 
 with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/company_list_tavily_output_dict - Copy.pkl", 'rb') as f:
@@ -110,7 +114,7 @@ def get_company_location(company_info):
     The location of the company
     """
     client = OpenAI(
-    api_key = 'sk-proj-XX'
+      api_key = os.environ.get('bioeconomyweb_openai_api_key', 'None')
     )
 
     company_name = company_info.get('name')

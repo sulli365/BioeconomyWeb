@@ -1,8 +1,13 @@
+import dotenv # pip install python-dotenv
+import os
+dotenv.load_dotenv('/.venv/.env')
+
+
 import openai
 import json
 
 # Set up your OpenAI API key
-openai.api_key = 'your-api-key-here'
+openai.api_key = os.environ.get('bioeconomyweb_openai_api_key', 'None')
 
 def get_company_location(company_info):
     """
