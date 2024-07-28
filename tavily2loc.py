@@ -24,7 +24,8 @@ import numpy as np
 
 import dotenv # pip install python-dotenv
 import os
-dotenv.load_dotenv('/.venv/.env')
+dotenv.load_dotenv()  #(dotenv_path='/.venv/.env')
+# places_api_key = os.getenv('bioeconomyweb_google_api_key', 'None')
 
 # needed to install pandas dependency 'openpyxl' --> pip install openpyxl
 
@@ -114,7 +115,7 @@ def get_company_location(company_info):
     The location of the company
     """
     client = OpenAI(
-      api_key = os.environ.get('bioeconomyweb_openai_api_key', 'None')
+      api_key = os.getenv('bioeconomyweb_openai_api_key', 'None')
     )
 
     company_name = company_info.get('name')

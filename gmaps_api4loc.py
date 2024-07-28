@@ -20,17 +20,18 @@ from google.maps import places_v1
 import json
 import dotenv # pip install python-dotenv
 import os
-dotenv.load_dotenv('/.venv/.env')
+dotenv.load_dotenv()  #(dotenv_path='/.venv/.env')
 
+places_api_key = os.getenv('bioeconomyweb_google_api_key', 'None') # 2nd argument not necessary 
 
 # SearchTextRequest
 def sample_search_text():
 
-    places_api_key = os.environ.get('bioeconomyweb_google_api_key', 'None')
+    
     # Create a client
     # client = places_v1.PlacesClient()
     client = places_v1.PlacesClient(
-        client_options={"api_key": places_api_key}
+    client_options={"api_key": places_api_key}
     )
 
     # Initialize request argument(s)
@@ -39,7 +40,7 @@ def sample_search_text():
         text_query="Ginkgo Bioworks Boston"
     )
 
-    fieldMask = "*" # "places,formattedAddress,location" 
+    fieldMask = "places.id,places.formattedAddress,places.location" #places.location.latitude,places.location.longitude"        # "*" - returns all fields
 
     # Make the request
     response = client.search_text(
@@ -52,6 +53,14 @@ def sample_search_text():
 
 
 test_goog = sample_search_text()
+
+# I have working code here that pulls out the id, formatted address, and location, need to think about how I want to store these things to associate later...
+
+# Going to parse the output so that it becomes a list: id, formatted address, latitude, longitude
+
+
+
+
 
 '''
 Going to push the sample output to further down this page because it is very large.
