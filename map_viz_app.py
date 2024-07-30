@@ -5,48 +5,82 @@ python 3.12.4 virtual environment
 
 
 '''
-# need to install the following modules into the virtual environment:
-# (in terminal) pip install streamlit pandas folium streamlit_folium
 
-import os # cwd = os.getcwd()
-import streamlit as st
-import pandas as pd
-import folium
-from streamlit_folium import st_folium
+# starting with code from - https://www.youtube.com/watch?v=H8Ypb8Ei9YA
 
+import csv
+
+filename = "C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/2024-07-28 companies and locations.csv"
+records = []
 
 
-def display_map(df, year, quarter):
-    df = df[(df['Year'] == year) & (df['Quarter'] == quarter)]
+with open(filename, 'r') as csvfile:
+    reader = csv.DictReader(csvfile)
+    for row in reader:
+        records.append(row)
 
-    map = folium.Map(location=[38, -96.5], zoom_start=4, scrollWheelZoom=False, tiles='CartoDB positron')
+# instantly getting an error where it cant read bytes...will need to figure this out later
+
+# Now convert string lat/lon coordinates to float
+
+
+
+
+#############################
+
+import folium # pip install folium
+
+
+
+
+
+
+
+
+
+
+
+##############################################################################################
+
+
+# import os # cwd = os.getcwd()
+# import streamlit as st # pip install streamlit
+# import pandas as pd
+# import folium
+# from streamlit_folium import st_folium
+
+
+# def display_map(df, year, quarter):
+#     df = df[(df['Year'] == year) & (df['Quarter'] == quarter)]
+
+#     map = folium.Map(location=[38, -96.5], zoom_start=4, scrollWheelZoom=False, tiles='CartoDB positron')
     
-    choropleth = folium.Choropleth(
-        geo_data='data/us-state-boundaries.geojson',
-        data=df,
-        columns=('State Name', 'State Total Reports Quarter'),
-        key_on='feature.properties.name',
-        line_opacity=0.8,
-        highlight=True
-    )
-    choropleth.geojson.add_to(map)
+#     choropleth = folium.Choropleth(
+#         geo_data='data/us-state-boundaries.geojson',
+#         data=df,
+#         columns=('State Name', 'State Total Reports Quarter'),
+#         key_on='feature.properties.name',
+#         line_opacity=0.8,
+#         highlight=True
+#     )
+#     choropleth.geojson.add_to(map)
 
-    df_indexed = df.set_index('State Name')
-    for feature in choropleth.geojson.data['features']:
-        state_name = feature['properties']['name']
-        feature['properties']['population'] = 'Population: ' + '{:,}'.format(df_indexed.loc[state_name, 'State Pop'][0]) if state_name in list(df_indexed.index) else ''
-        feature['properties']['per_100k'] = 'Reports/100K Population: ' + str(round(df_indexed.loc[state_name, 'Reports per 100K-F&O together'][0])) if state_name in list(df_indexed.index) else ''
+#     df_indexed = df.set_index('State Name')
+#     for feature in choropleth.geojson.data['features']:
+#         state_name = feature['properties']['name']
+#         feature['properties']['population'] = 'Population: ' + '{:,}'.format(df_indexed.loc[state_name, 'State Pop'][0]) if state_name in list(df_indexed.index) else ''
+#         feature['properties']['per_100k'] = 'Reports/100K Population: ' + str(round(df_indexed.loc[state_name, 'Reports per 100K-F&O together'][0])) if state_name in list(df_indexed.index) else ''
 
-    choropleth.geojson.add_child(
-        folium.features.GeoJsonTooltip(['name', 'population', 'per_100k'], labels=False)
-    )
+#     choropleth.geojson.add_child(
+#         folium.features.GeoJsonTooltip(['name', 'population', 'per_100k'], labels=False)
+#     )
     
-    st_map = st_folium(map, width=700, height=450)
+#     st_map = st_folium(map, width=700, height=450)
 
-    state_name = ''
-    if st_map['last_active_drawing']:
-        state_name = st_map['last_active_drawing']['properties']['name']
-    return state_name
+#     state_name = ''
+#     if st_map['last_active_drawing']:
+#         state_name = st_map['last_active_drawing']['properties']['name']
+#     return state_name
 
 
 

@@ -58,6 +58,15 @@ test_goog = sample_search_text()
 
 # Going to parse the output so that it becomes a list: id, formatted address, latitude, longitude
 
+places_out_list = [
+    test_goog.places[0].id, 
+    test_goog.places[0].formatted_address, 
+    test_goog.places[0].location.latitude,
+    test_goog.places[0].location.longitude
+    ]
+
+
+
 
 
 

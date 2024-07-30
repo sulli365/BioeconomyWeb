@@ -97,13 +97,6 @@ import json
 
 # Set up your OpenAI API key
 
-# client = OpenAI(
-#     api_key = 'sk-proj-Q2cKZKeZle0MKVPvJeJ7T3BlbkFJNsaKZfiRXMzLDvfHo3wM'
-# )
-
-# openai.api_key = 'sk-proj-Q2cKZKeZle0MKVPvJeJ7T3BlbkFJNsaKZfiRXMzLDvfHo3wM'
-
-
 def get_company_location(company_info):
     """
     Uses OpenAI's API to determine the location of a company from the provided information.
