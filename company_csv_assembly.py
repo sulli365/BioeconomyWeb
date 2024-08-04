@@ -11,10 +11,19 @@ from google.maps import places_v1
 
 raw_company_list_path = "C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/2024-07-28 raw company list utf8.csv"
 
-raw_company_list_df = pd.read_csv(filepath_or_buffer=raw_company_list_path, header=0, skipinitialspace=True, on_bad_lines='warn')
+raw_company_list_df = pd.read_csv(
+    filepath_or_buffer=raw_company_list_path,
+    header=0,
+    skipinitialspace=True,
+    on_bad_lines='warn',
+    encoding= 'latin-1'
+    )
 
 # Getting an error that utf8 can't decode a byte in position 396 - invalid start byte...not even sure how to fix this...
 # Moved forward by re-saving the csv as UTF8 csv in excel, now it works
+
+# One example is Latin-1 (also called ISO-8859-1), which is technically the default for the Hypertext Transfer Protocol (HTTP), per RFC 2616. Windows has its own Latin-1 variant called cp1252.
+
 
 # Need to convert df column to a subscriptable list
 
@@ -89,7 +98,8 @@ for i in raw_company_list:
 
 company_loc_only_df.to_csv(
     path_or_buf="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/2024-07-28 companies and locations.csv",
-    sep=','
+    sep=',',
+    index=False
     )
 
 

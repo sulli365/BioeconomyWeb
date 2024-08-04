@@ -23,43 +23,121 @@ import pandas as pd
 import folium
 import numpy as np
 from streamlit_folium import st_folium
+from folium.plugins import FastMarkerCluster
 
 
 APP_TITLE = "Bioeconomy Web"
-APP_SUB_TITLE = "Caveat emptor"
+# APP_SUB_TITLE = "Caveat emptor"
+
+# st.set_page_config(APP_TITLE)
+# st.title(APP_TITLE)
+# # st.caption(APP_SUB_TITLE)
+
+# # Load data
+
+# comp_loc_df = pd.read_csv(
+#     filepath_or_buffer="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/2024-07-28 companies and locations.csv",
+#     header=0
+# )
+
+# records = []
+
+# def convert_unknown(name, lat_val, lon_val):
+    
+#     if lat_val == "Unknown":
+#         return [name, 0,0]
+#     else:
+#         return [name, float(lat_val),float(lon_val)]
 
 
+# records = [convert_unknown(x,y,z) for x,y,z in zip(comp_loc_df['Name'],comp_loc_df['Latitude'],comp_loc_df['Longitude']
+# )]
+
+# map = folium.Map(location=[39.8283,-98.5795], zoom_start=2) #scrollWheelZoom=False, tiles = 'CartoDB positron'
+
+# for record in records:
+#     coords = (record[1],record[2])
+#     folium.Marker(coords, popup=record[0]).add_to(map)
+
+# st_map = st_folium(map, use_container_width=True, height=450)
+
+
+# # def display_map(df):
 
 def main():
 
     st.set_page_config(APP_TITLE)
     st.title(APP_TITLE)
-    st.caption(APP_SUB_TITLE)
+    # st.caption(APP_SUB_TITLE)
 
+    # Load data
+
+    comp_loc_df = pd.read_csv(
+        filepath_or_buffer="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/2024-07-28 companies and locations.csv",
+        header=0
+    )
+
+    records = []
+        
+    def convert_unknown(name, lat_val, lon_val):
     
+        if lat_val == "Unknown":
+            return [name, 0,0]
+        else:
+            return [name, float(lat_val),float(lon_val)]
 
-    # inserting a container at the top to hold a bunch of filters/buttons
-    # May also want to do this with a sidebar (st.sidebar.write...)
 
-    c_filters = st.container()
+    records = [convert_unknown(x,y,z) for x,y,z in zip(comp_loc_df['Name'],comp_loc_df['Latitude'],comp_loc_df['Longitude']
+    )]
 
+    # Want to start with a multiselect that will be populated by the Keywords
+    # Only companies whose keywords are clicked shoudl show up on the map
 
-    # now inserting two columns, on the left will be the map and on the right will be the table display filtering the data
+    # choices = st.multiselect()
 
-    left_col, right_col = st.columns(2)
+    # Next comes the map
+    # Still need to figure out coords to assign companies with unknown location
 
-    left_col.write("Map Overlay")
-    right_col.write("Details")
+    map = folium.Map(location=[39.8283,-98.5795], zoom_start=1, tiles='CartoDB positron') #scrollWheelZoom=False,
 
-    with left_col:
-        map = folium.Map(location=[39.8283,-98.5795], zoom_start=1, tiles='CartoDB positron') #scrollWheelZoom=False,
+    for record in records:
+        coords = (record[1],record[2])
+        folium.Marker(coords, popup=record[0]).add_to(map)
 
-        st_map = st_folium(map, use_container_width=True, height=450)
+    st_map = st_folium(map, use_container_width=True, height=450)
+
+    # And below should be a table with more information about the selected company
+
+    # org_snapshot = st.table()
 
 
 
 if __name__ == "__main__":
     main()
+
+
+
+
+#################################################################################################
+# inserting a container at the top to hold a bunch of filters/buttons
+# May also want to do this with a sidebar (st.sidebar.write...)
+
+# c_filters = st.container()
+
+
+# now inserting two columns, on the left will be the map and on the right will be the table display filtering the data
+
+# left_col, right_col = st.columns(2)
+
+# left_col.write("Map Overlay")
+# right_col.write("Details")
+
+# with left_col:
+#     map = folium.Map(location=[39.8283,-98.5795], zoom_start=1, tiles='CartoDB positron') #scrollWheelZoom=False,
+
+#     st_map = st_folium(map, use_container_width=True, height=450)
+
+
 
 #############################
 
