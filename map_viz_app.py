@@ -64,6 +64,8 @@ APP_TITLE = "Bioeconomy Web"
 
 # # def display_map(df):
 
+
+
 def main():
 
     st.set_page_config(APP_TITLE)
@@ -112,8 +114,40 @@ def main():
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 if __name__ == "__main__":
     main()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
