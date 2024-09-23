@@ -63,7 +63,7 @@ raw_company_list = list(raw_company_list_df['Name'].unique())
 # BRING IN EXISTING BIOECONOMY CSV AS DATAFRAME
 
 current_bioeconomy_df = pd.read_csv(
-    filepath_or_buffer="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/current_bioeconomy_df - Copy.csv",
+    filepath_or_buffer="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_bioeconomy_df.csv",
     header=0,
     skipinitialspace=True,
     on_bad_lines='warn',
@@ -83,17 +83,17 @@ names = list(current_bioeconomy_df['Name'])
 
 # BRING IN WEB_INFO DICT
 
-with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/current_web_info_dict - Copy.pkl", 'rb') as f:
+with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_web_info_dict.pkl", 'rb') as f:
     current_web_info_dict = pickle.load(f)
 
 # BRING IN LOCATION_INFO DICT
 
-with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/current_location_info_dict - Copy.pkl", 'rb') as f:
+with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_location_info_dict.pkl", 'rb') as f:
     current_location_info_dict = pickle.load(f)
 
 # BRING IN LLM_PARSE DICT
 
-with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/current_company_LLM_parse_dict - Copy.pkl", 'rb') as f:
+with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_company_LLM_parse_dict.pkl", 'rb') as f:
     current_company_LLM_parse_dict = pickle.load(f)
 
 
@@ -337,7 +337,8 @@ with open('C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/cur
 current_bioeconomy_df.to_csv(
     path_or_buf="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/current_bioeconomy_df.csv",
     sep=',',
-    index=False
+    index=False,
+    encoding= 'latin-1'
     )
 
 # current_troubleshooting_df.to_csv(
