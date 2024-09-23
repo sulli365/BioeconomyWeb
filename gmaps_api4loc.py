@@ -45,7 +45,7 @@ def sample_search_text():
     # Make the request
     response = client.search_text(
         request=request,
-        metadata=[("x-goog-fieldmask",fieldMask)]
+        metadata=[("x-goog-fieldmask",fieldMask)] # Figuring this out sucked btw, the fact that you need this 'fieldMask' param
         )
 
     # Handle the response
