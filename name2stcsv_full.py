@@ -25,8 +25,8 @@ Other things to do:
 
 '''
 
-DONT RUN UNTIL IVE MADE SURE THAT CURRENT COMPANY LIST AND NEW COMPANY CAN BE COMPARED AND SO NOTHING
-IS OVERWRITTEN UNNECESSARILY
+# DONT RUN UNTIL IVE MADE SURE THAT CURRENT COMPANY LIST AND NEW COMPANY CAN BE COMPARED AND SO NOTHING
+# IS OVERWRITTEN UNNECESSARILY
 
 import pickle
 import os
@@ -49,16 +49,19 @@ dotenv.load_dotenv()
 # BRING IN THE 'NEW' COMPANY LIST TO BE PROCESSED AS A DATAFRAME, HEADER MUST BE 'NAME'
 
 raw_company_list_df = pd.read_csv(
-    filepath_or_buffer="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/2024-07-28 raw company list.csv",
+    filepath_or_buffer="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/2024-07-28 companies and locations.csv",
     header=0,
     skipinitialspace=True,
     on_bad_lines='warn',
-    encoding= 'latin-1'
+    encoding= 'utf_8_sig' # 'latin-1'
     )
 
 # convert names to list and drop duplicates
-raw_company_list = list(raw_company_list_df['Name'].unique())
+raw_company_list = list(raw_company_list_df['Name'])
+raw_company_list = list(set(raw_company_list))
 
+# restrict length of company list for pipeline testing
+raw_company_list = raw_company_list[0:10]
 
 # BRING IN EXISTING BIOECONOMY CSV AS DATAFRAME
 
@@ -67,7 +70,7 @@ current_bioeconomy_df = pd.read_csv(
     header=0,
     skipinitialspace=True,
     on_bad_lines='warn',
-    encoding= 'latin-1'
+    encoding= 'utf_8_sig' # 'latin-1'
     )
 
 # convert columns to lists for company checking
@@ -207,7 +210,7 @@ def get_LLM_parse(company_name, web_info_dict):
     # Define a Pydantic class to capture the desired output of the LLM call
     class Profile(BaseModel):
         company_name: str = Field(description = "the name of the company")
-        company_purpose_keywords: str = Field(description = "3-4 keywords that describe the industry and/or market served by the company")
+        company_purpose_keywords: str = Field(description = "3-4 keywords that describe the industry and/or market served by the company. Each word should be capitalized.")
         url_link: str = Field(description = "the url for the organization's website")
         company_description: str = Field(description = "a description of between 150 and 300 words of what the organization does and what markets it operates in.")
 
@@ -243,19 +246,19 @@ def get_LLM_parse(company_name, web_info_dict):
         if outcome.parsed:
             
             model_out = outcome.parsed.model_dump()
-            LLM_out_list = [model_out['company_name'], model_out['company_purpose_keywords'],  model_out['company_description'], model_out['url_link']]
+            LLM_out_list = [model_out['company_purpose_keywords'],  model_out['company_description'], model_out['url_link']]
 
  
         elif outcome.refusal:
 
             # LLM_out_list = ['refusal','refusal','refusal','refusal']
-            LLM_out_list = ['empty','empty','empty','empty']
+            LLM_out_list = ['empty','empty','empty']
         
     except Exception as e:
 
         print(company_name, e)
         # LLM_out_list = ['exception','exception','exception','exception']
-        LLM_out_list = ['empty','empty','empty','empty']
+        LLM_out_list = ['empty','empty','empty']
     
     finally:
 
@@ -278,14 +281,12 @@ for company in raw_company_list:
         # check_name = True
         index = names.index(company)
 
-        if keywords[index] == 'empty'
-
     
     # For companies not present, run through the normal pipeline of gathering and parsing info
     else:
         # Check web_info_dict
         try:
-            current_web_info_dict[company]
+            web_info = current_web_info_dict[company]
         except KeyError:
             web_info = get_web_info(company)
             current_web_info_dict[company] = web_info
@@ -293,7 +294,7 @@ for company in raw_company_list:
 
         # Check location_info_dict
         try:
-            current_location_info_dict[company]
+            location_info = current_location_info_dict[company]
         except KeyError:
             location_info = get_location_info(company)
             current_location_info_dict[company] = location_info
@@ -301,18 +302,33 @@ for company in raw_company_list:
 
         # Check LLM_parse_dict
         try:
-            current_company_LLM_parse_dict[company]
+            LLM_parse = current_company_LLM_parse_dict[company]
+
+            if type(LLM_parse[0]) == list:
+
+                keywords_str = ','.join(LLM_parse[0])
+                LLM_parse = [keywords_str, LLM_parse[1], LLM_parse[2]]
+                current_company_LLM_parse_dict.update({company: LLM_parse})
+
         except KeyError:
             # What should this return?
-            LLM_parse = get_LLM_parse(company, current_location_info_dict)
-            current_company_LLM_parse_dict[company] = LLM_parse
+            LLM_parse = get_LLM_parse(company, current_web_info_dict)
+            
+            if type(LLM_parse[0]) == list:
+
+                keywords_str = ','.join(LLM_parse[0])
+                LLM_parse = [keywords_str, LLM_parse[1], LLM_parse[2]]
+                current_company_LLM_parse_dict[company] = LLM_parse
+            
+            else:
+                current_company_LLM_parse_dict[company] = LLM_parse
 
         # Assemble the new bioeconomy_df entry and add it to the df
         new_df_entry = [
+            company,
             LLM_parse[0],
             LLM_parse[1],
             LLM_parse[2],
-            LLM_parse[3],
             location_info[0],
             location_info[1],
             location_info[2],
@@ -325,20 +341,20 @@ for company in raw_company_list:
 
 # STORE UPDATED WEB_INFO, LOCATION_INFO, LLM_PARSE, BIOECONOMY_DF, AND TROUBLESHOOTING_DF --> AS 'CURRENT' VERSION, NO COPY
 
-with open('C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/current_web_info_dict.pkl', 'wb') as f:
+with open('C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_web_info_dict.pkl', 'wb') as f:
     pickle.dump(current_web_info_dict, f)
 
-with open('C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/current_location_info_dict.pkl', 'wb') as f:
+with open('C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_location_info_dict.pkl', 'wb') as f:
     pickle.dump(current_location_info_dict, f)
 
-with open('C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/current_company_LLM_parse_dict.pkl', 'wb') as f:
+with open('C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_company_LLM_parse_dict.pkl', 'wb') as f:
     pickle.dump(current_company_LLM_parse_dict, f)
 
 current_bioeconomy_df.to_csv(
-    path_or_buf="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/current_bioeconomy_df.csv",
+    path_or_buf="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_bioeconomy_df.csv",
     sep=',',
     index=False,
-    encoding= 'latin-1'
+    encoding= 'utf_8_sig' # 'latin-1'
     )
 
 # current_troubleshooting_df.to_csv(
@@ -346,106 +362,3 @@ current_bioeconomy_df.to_csv(
 #     sep=',',
 #     index=False
 #     )
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-######################################################
-
-## Now make a list of the set of companies that don't have Tavily data
-
-companies = raw_company_list_df['Company']
-no_tav_list = []
-
-for i in companies:
-    
-    try:
-
-        company_list_tavily_output_dict[i]
-
-    except KeyError:
-
-        no_tav_list.append(i)
-
-## Now going to try to find companies that returned Tavily results that are garbage
-
-have_tav_list = [i for i in companies if i not in no_tav_list]
-# print(len(companies))
-# print(len(no_tav_list))
-# print(len(have_tav_list))
-
-empty_tav_list = []
-
-for i in have_tav_list:
-
-    results = company_list_tavily_output_dict[i]['results']
-
-    if len(results) < 5:
-        
-        print(results)
-        empty_tav_list.append(i)
-
-## 23 companies have 'empty' or short Tav lists, adding them to the Tavily search list
-## may want to also drop them from the tavily output dict...or just not add ones that have results length = 0
-
-no_tav_list.append(empty_tav_list)
-
-## Now set up Tavily pipeline with this list
-
-tavily_api_key = os.getenv('TAVILY_API_KEY_sfs', 'None')
-tavily = TavilyClient(api_key=tavily_api_key)
-
-tav_out_dict = {}
-
-for i in no_tav_list:
-
-    tav_query_final = "Describe what " + i + " does, including its objectives, location, the industries and markets in which it operates, and any differentiating characteristics relative to other companies in a similar space."
-
-    company_name_tavily_output = tavily.search(
-        query = tav_query_final,
-        search_depth="advanced",
-        max_results=8
-        )
-
-    tav_out_dict[i] = company_name_tavily_output
-
-    print(i)
-
-with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/2024-08-03 company_list_tavily_output_dict.pkl", 'wb') as f:
-    pickle.dump(tav_out_dict, f)
-
-
-# GATHER INFO ABOUT THE LOCATION OF THE COMPANY
-
-
-
-
-
-# GATHER INFO ABOUT THE COMPANY USING TAVILY
-
-
-
-
-
-
-# CALL AN LLM TO TURN THE TAVILY INFO INTO THE DESIRED STRUCTURED OUTPUT
-
-
-
-
-
-# WRITE THE COMLETED DATAFRAME TO A CSV TO BE IMPORTED WITH STREAMLIT
-
-
-
