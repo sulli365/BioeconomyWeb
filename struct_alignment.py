@@ -57,8 +57,8 @@ dotenv.load_dotenv()
 
 # dict with 775 keys
 
-with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_web_info_dict.pkl", 'rb') as f:
-    current_web_info_dict = pickle.load(f)
+# with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_web_info_dict.pkl", 'rb') as f:
+#     current_web_info_dict = pickle.load(f)
 
 
 
@@ -74,13 +74,13 @@ with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Cur
 # with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/2024-07-28 company_loc_only_df - Copy.pkl", 'rb') as f:
 #     current_location_info_dict = pickle.load(f)
 
-with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_location_info_dict.pkl", 'rb') as f:
-    current_location_info_dict = pickle.load(f)
+# with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_location_info_dict.pkl", 'rb') as f:
+#     current_location_info_dict = pickle.load(f)
 
 # BRING IN LLM_PARSE DICT
 
-with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_company_LLM_parse_dict.pkl", 'rb') as f:
-    current_company_LLM_parse_dict = pickle.load(f)
+# with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_company_LLM_parse_dict.pkl", 'rb') as f:
+#     current_company_LLM_parse_dict = pickle.load(f)
 
 # current_company_LLM_parse_dict = pd.compat.pickle_compat.load("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/synbio_web_companies_and_info_df - Copy.pkl")
 
@@ -142,3 +142,84 @@ with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Cur
 #     index=False,
 #     encoding= 'latin-1'
 #     )
+
+
+
+###################################################
+
+# with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_company_LLM_parse_dict.pkl", 'rb') as f:
+#     current_company_LLM_parse_dict = pickle.load(f)
+
+# llm_keys = current_company_LLM_parse_dict.keys()
+
+# no_llm_parse_df = pd.DataFrame(
+#     data=None,
+#     index=None,
+#     columns=['Name']
+# )
+
+# new_dict = dict()
+
+# for key in llm_keys:
+
+#     entry = current_company_LLM_parse_dict[key]
+
+#     curr_list = current_company_LLM_parse_dict[key][0]
+
+#     if len(curr_list) < 2:
+
+#         no_llm_parse_df.loc[len(no_llm_parse_df)] = key
+
+#         continue
+
+#     elif type(curr_list) == str:
+ 
+#         newlist = curr_list.split(",")
+#         newlist2 = [sol.lstrip() for sol in newlist]
+#         newlist3 = [sol.title() for sol in newlist2]
+
+#         new_dict[key] = [newlist3, entry[1], entry[2]]
+
+#     elif type(curr_list) == list:
+
+#         newlist = [words.lstrip() for words in curr_list]
+#         newlist2 = [words.title() for words in newlist]
+
+#         new_dict[key] = [newlist2, entry[1], entry[2]]
+
+
+# with open('C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/test_llm_parse_dict.pkl', 'wb') as f:
+#     pickle.dump(new_dict, f)
+
+# no_llm_parse_df.to_csv(
+#     path_or_buf="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/no_llm_parse_df.csv",
+#     sep=',',
+#     index=False,
+#     encoding= 'utf_8_sig' # 'latin-1'
+#     )
+
+################################
+
+# with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/test_llm_parse_dict.pkl", 'rb') as f:
+#     test_llm_parse_dict = pickle.load(f)
+
+
+# llm_keys = test_llm_parse_dict.keys()
+
+# for key in llm_keys:
+
+#     curr_list = test_llm_parse_dict[key][0]
+#     print(curr_list)
+
+
+######################################
+
+# with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_company_LLM_parse_dict.pkl", 'rb') as f:
+#     current_company_LLM_parse_dict = pickle.load(f)
+
+# llm_keys = list(current_company_LLM_parse_dict.keys())
+
+# with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/test_llm_parse_dict.pkl", 'rb') as f:
+#     test_llm_parse_dict = pickle.load(f)
+
+# llm_keys2 = list(test_llm_parse_dict.keys())

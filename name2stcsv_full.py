@@ -49,7 +49,7 @@ dotenv.load_dotenv()
 # BRING IN THE 'NEW' COMPANY LIST TO BE PROCESSED AS A DATAFRAME, HEADER MUST BE 'NAME'
 
 raw_company_list_df = pd.read_csv(
-    filepath_or_buffer="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/2024-07-28 companies and locations.csv",
+    filepath_or_buffer="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/2024-07-28 companies and locations.csv",
     header=0,
     skipinitialspace=True,
     on_bad_lines='warn',
@@ -61,7 +61,7 @@ raw_company_list = list(raw_company_list_df['Name'])
 raw_company_list = list(set(raw_company_list))
 
 # restrict length of company list for pipeline testing
-raw_company_list = raw_company_list[0:10]
+# raw_company_list = raw_company_list # [0:20]
 
 # BRING IN EXISTING BIOECONOMY CSV AS DATAFRAME
 
@@ -99,7 +99,6 @@ with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Cur
 with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_company_LLM_parse_dict.pkl", 'rb') as f:
     current_company_LLM_parse_dict = pickle.load(f)
 
-
 # BRING IN TROUBLESHOOTING CSV AS DATAFRAME
 
 # current_troubleshooting_df = pd.read_csv(
@@ -109,6 +108,14 @@ with open("C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Cur
 #     on_bad_lines='warn',
 #     encoding= 'latin-1'
 #     )
+
+# DEFINE A DATAFRAME TO CATCH COMPANIES WITH BAD LLM PARSE INFO
+
+no_llm_parse_df = pd.DataFrame(
+    data=None,
+    index=None,
+    columns=['Name']
+)
 
 
 # DEFINE FUNCTIONS FOR GATHERING WEB_INFO, LOCATION_INFO, LLM_PARSE
@@ -176,6 +183,38 @@ def get_location_info(company_name):
     return places_out_list
 
 
+def format_keyword_list(company, LLM_parse):
+    '''
+    Takes in the company name and the Pydantic formatted output object LLM_parse, isolates the Keywords, and makes sure that they 
+    are in the appropriate format for later use as Multichoice Selectbox options in Streamlit app.
+
+    Output is a modified "LLM_parse" list.
+    '''    
+    curr_list = LLM_parse[0]
+
+    if len(curr_list) < 2:
+
+        no_llm_parse_df.loc[len(no_llm_parse_df)] = company
+
+        mod_LLM_parse = ['no content','no content','no content']
+
+    elif type(curr_list) == str:
+ 
+        newlist = curr_list.split(",")
+        newlist2 = [sol.lstrip() for sol in newlist]
+        newlist3 = [sol.title() for sol in newlist2]
+
+        mod_LLM_parse = [newlist3, LLM_parse[1], LLM_parse[2]]
+
+    elif type(curr_list) == list:
+
+        newlist = [words.lstrip() for words in curr_list]
+        newlist2 = [words.title() for words in newlist]
+
+        mod_LLM_parse = [newlist2, LLM_parse[1], LLM_parse[2]]
+
+    return mod_LLM_parse
+
 
 def get_LLM_parse(company_name, web_info_dict):
     """
@@ -210,7 +249,7 @@ def get_LLM_parse(company_name, web_info_dict):
     # Define a Pydantic class to capture the desired output of the LLM call
     class Profile(BaseModel):
         company_name: str = Field(description = "the name of the company")
-        company_purpose_keywords: str = Field(description = "3-4 keywords that describe the industry and/or market served by the company. Each word should be capitalized.")
+        company_purpose_keywords: str = Field(description = "3-4 keywords that describe the industry and/or market served by the company.")
         url_link: str = Field(description = "the url for the organization's website")
         company_description: str = Field(description = "a description of between 150 and 300 words of what the organization does and what markets it operates in.")
 
@@ -251,13 +290,13 @@ def get_LLM_parse(company_name, web_info_dict):
  
         elif outcome.refusal:
 
-            # LLM_out_list = ['refusal','refusal','refusal','refusal']
+            # LLM_out_list = ['refusal','refusal','refusal']
             LLM_out_list = ['empty','empty','empty']
         
     except Exception as e:
 
         print(company_name, e)
-        # LLM_out_list = ['exception','exception','exception','exception']
+        # LLM_out_list = ['exception','exception','exception']
         LLM_out_list = ['empty','empty','empty']
     
     finally:
@@ -304,31 +343,40 @@ for company in raw_company_list:
         try:
             LLM_parse = current_company_LLM_parse_dict[company]
 
-            if type(LLM_parse[0]) == list:
+            mod_LLM_parse = format_keyword_list(company, LLM_parse)
 
-                keywords_str = ','.join(LLM_parse[0])
-                LLM_parse = [keywords_str, LLM_parse[1], LLM_parse[2]]
-                current_company_LLM_parse_dict.update({company: LLM_parse})
+            current_company_LLM_parse_dict.update({company: mod_LLM_parse})
+
+            # if type(LLM_parse[0]) == list:
+
+            #     keywords_str = ','.join(LLM_parse[0])
+            #     LLM_parse = [keywords_str, LLM_parse[1], LLM_parse[2]]
+
+            #     current_company_LLM_parse_dict.update({company: LLM_parse})
 
         except KeyError:
             # What should this return?
             LLM_parse = get_LLM_parse(company, current_web_info_dict)
-            
-            if type(LLM_parse[0]) == list:
 
-                keywords_str = ','.join(LLM_parse[0])
-                LLM_parse = [keywords_str, LLM_parse[1], LLM_parse[2]]
-                current_company_LLM_parse_dict[company] = LLM_parse
+            mod_LLM_parse = format_keyword_list(company, LLM_parse)
+
+            current_company_LLM_parse_dict.update({company: mod_LLM_parse})
             
-            else:
-                current_company_LLM_parse_dict[company] = LLM_parse
+            # if type(LLM_parse[0]) == list:
+
+            #     keywords_str = ','.join(LLM_parse[0])
+            #     LLM_parse = [keywords_str, LLM_parse[1], LLM_parse[2]]
+            #     current_company_LLM_parse_dict[company] = LLM_parse
+            
+            # else:
+            #     current_company_LLM_parse_dict[company] = LLM_parse
 
         # Assemble the new bioeconomy_df entry and add it to the df
         new_df_entry = [
             company,
-            LLM_parse[0],
-            LLM_parse[1],
-            LLM_parse[2],
+            mod_LLM_parse[0],
+            mod_LLM_parse[1],
+            mod_LLM_parse[2],
             location_info[0],
             location_info[1],
             location_info[2],
@@ -354,7 +402,7 @@ current_bioeconomy_df.to_csv(
     path_or_buf="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_bioeconomy_df.csv",
     sep=',',
     index=False,
-    encoding= 'utf_8_sig' # 'latin-1'
+    encoding= 'utf_8_sig'
     )
 
 # current_troubleshooting_df.to_csv(
@@ -362,3 +410,19 @@ current_bioeconomy_df.to_csv(
 #     sep=',',
 #     index=False
 #     )
+
+current_bioeconomy_df.to_csv(
+    path_or_buf="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/current_bioeconomy_df.csv",
+    sep=',',
+    index=False,
+    encoding= 'utf_8_sig'
+    )
+
+
+no_llm_parse_df.to_csv(
+    path_or_buf="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/no_llm_parse_df.csv",
+    sep=',',
+    index=False,
+    date_format ='%Y-%m-%d',
+    encoding='utf_8_sig'
+    )
