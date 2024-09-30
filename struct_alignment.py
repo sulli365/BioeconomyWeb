@@ -36,7 +36,7 @@ dotenv.load_dotenv()
 #     header=0,
 #     skipinitialspace=True,
 #     on_bad_lines='warn',
-#     encoding= 'latin-1'
+#     encoding= 'ut'
 #     )
 
 # convert columns to lists for company checking
@@ -223,3 +223,41 @@ dotenv.load_dotenv()
 #     test_llm_parse_dict = pickle.load(f)
 
 # llm_keys2 = list(test_llm_parse_dict.keys())
+
+
+info_df = pd.read_csv(
+        filepath_or_buffer="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/2024-09-27 current_bioeconomy_df.csv",
+        header=0,
+        skipinitialspace=True,
+        on_bad_lines='warn',
+        # dtype= str,
+        # converters = {'Keywords' : list, 'Latitude': float, 'Longitude': float},
+        encoding= 'utf_8_sig'
+    )
+
+# multi_options = list(info_df['Keywords'])
+
+multi_options1 = [wordlist[1:-1].split(', ') for wordlist in info_df['Keywords']]
+
+multi_options2 =[]
+
+for wordlist in multi_options1:
+    for entry in wordlist:
+        multi_options2.append(entry[1:-1])
+
+# multi_options = [wordlist[1:-1].split(', ') for wordlist in info_df['Keywords']]
+
+# multi_options = [words.split(', ') for words in multi_options]
+
+# multi_options = [words[1:-1] for words in multi_options]
+
+
+# multi_options = [keywords.split(', ') for keywords in multi_options]
+
+# multi_options = [info_df['Keywords'].apply(lambda x: (x.split(', ') for x in info_df['Keywords']))]
+
+# info_df[info_df['Keywords'].apply(lambda x: any(keyword in x for keyword in multi_choices))]
+
+# multi_options = [word.split(', ') for keyword_lists in info_df['Keywords']]
+
+# multi_options = [word for keywords_list in info_df['Keywords'] for word in keywords_list]

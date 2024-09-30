@@ -1,20 +1,9 @@
 
-# starting with code from - https://www.youtube.com/watch?v=H8Ypb8Ei9YA
-
-# import csv
-
-# filename = "C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/2024-07-28 companies and locations.csv"
-# records = []
+"""
+Need to fill this out...
 
 
-# with open(filename, 'r') as csvfile:
-#     reader = csv.DictReader(csvfile)
-#     for row in reader:
-#         records.append(row)
-
-# instantly getting an error where it cant read bytes...will need to figure this out later
-
-# Now convert string lat/lon coordinates to float
+"""
 
 
 import os # cwd = os.getcwd()
@@ -23,6 +12,7 @@ import pandas as pd
 import folium
 import numpy as np
 from streamlit_folium import st_folium
+from folium.plugins import MarkerCluster
 from folium.plugins import FastMarkerCluster
 
 
@@ -42,69 +32,131 @@ def display_sidebar_filters(info_df):
 
     Default return for each should be None for the case where no specific filtering is done.
     """
-    search_choice = ''
+    # search_choice = ''
     # pausing on searchbar atm, would need if statement later
     # searchbar = st.
     
+    # multi_choices = []
 
-    multi_options = list(info_df['Keywords'].unique())
+    multi_options1 = [wordlist[1:-1].split(', ') for wordlist in info_df['Keywords']]
+
+    multi_options =[]
+
+    for wordlist in multi_options1:
+        for entry in wordlist:
+            multi_options.append(entry[1:-1])
+    
+    multi_options = list(set(multi_options))
     multi_options.sort()
+    # print(multi_options)
+
     multi_choices = st.multiselect("Filter visible companies by keyword:", options=multi_options)
+    # multi_choices = st.sidebar.multiselect("Filter visible companies by keyword:", options=multi_options)
 
-    return search_choice, multi_choices # returns STRING, LIST
+    return multi_choices # returns STRING, LIST
 
 
 
-
-def display_map(info_df, search_choice, multi_choices):
+def display_map(info_df, multi_choices): # search_choice
     """
     Receives the full company info df but also args that allow the markers display to be a filtered subset of the full list.
     Need to figure out exactly what args this function needs...
 
     Output should be an interactive streamlit_folium map.
     """
+    # print('search choice multi choice')
+    # print(search_choice, multi_choices)
     
-    # NEED CODE HERE THAT FILTERS INPUT DF TO ISOLATE RECORDS SO THEY CAN BE TURNED INTO MARKERS
-    # ALSO NEED TO INHERIT HOW TO FILTER THE DF BASED ON INPUT FROM SELECTOR AND/OR SEARCH BAR
+    map = folium.Map(location=[39.8283,-98.5795], zoom_start=2, tiles='CartoDB positron') #scrollWheelZoom=False,
+
+    # FILTERS INPUT DF TO ISOLATE RECORDS SO THEY CAN BE TURNED INTO MARKERS
     
-    map = folium.Map(location=[39.8283,-98.5795], zoom_start=1, tiles='CartoDB positron') #scrollWheelZoom=False,
+    # print(multi_choices)
 
-    for record in records: # NEED TO DEFINE RECORDS - SHOULD BE SUBSET OF FULL DF
-        coords = (record[1],record[2])
-        folium.Marker(coords, popup=record[0]).add_to(map)
+    # if search_choice != '':
+    #     # print('Search choice not NONE')
+        
+    #     info_df = info_df[info_df['Name'] == search_choice]
+    
+    if multi_choices != []:
 
-    st_map = st_folium(map, use_container_width=True, height=450)
+        info_df = info_df[info_df['Keywords'].apply(lambda x: any(keyword in x for keyword in multi_choices))]
 
-    # code to extract out Name of last-clicked feature on map
-    # need to modify this code to use company name to disply dataframe of company info
-    company_name = ''
-    if st_map['last_active_drawing']:
-        company_name = st_map['last_active_drawing']['properties']['name']
-    return company_name
+    
+
+    # TURN THE FILTERED DF ENTRIES INTO MARKERS
+    
+    # print('Display map')
+    # print(info_df.shape)
+
+    records = []
+
+    def convert_unknown(name, lat_val, lon_val):
+
+        if lat_val == "Unknown":
+            return [name,0,0]
+        else:
+            return [name,float(lat_val),float(lon_val)]
+
+    # could try list zip
+    records = [convert_unknown(x,y,z) for x,y,z in zip(info_df['Name'],info_df['Latitude'],info_df['Longitude']
+    )]
+
+    # print('Records')
+    # print(records[0:5])
+
+    # Trying MarkerCluster
+
+    marker_cluster = MarkerCluster().add_to(map)
+
+    for record in records:
+        coords = [record[1],record[2]]
+        folium.Marker(
+            coords,
+            popup=record[0],
+            tooltip=record[0],
+            icon=folium.Icon(color='lightgray', icon='home', prefix='fa') # need to explore more options
+        ).add_to(marker_cluster)
+
+    st_map = st_folium(map, use_container_width=True, height=600)
+
+    # st.write(st_map)
+    # print(st_map)
 
 
+    click_name = ''
+    
+    if st_map['last_object_clicked_tooltip'] != None:
+        click_name = st_map['last_object_clicked_tooltip']
+        
+    # print('click name')
+    # print(click_name) # returns '' if no selection
+    return click_name
 
 
 def display_company_details(info_df, company_name):
     """
-    Receives a company name (either via hovering or clicking mouse), display info on popup and click.
-
-    Both functions need to result in a dataframe or table appear below the map with the appropriate information.
+    Receives a company name by clicking mouse and in response displays company info dataframe below map.
     """
-    # Need to inherit user interaction (click/hover) somehow
-    # Think this will actually be a click-only thing, hover gets dealt with
-    # in display-map function when defining marker characteristics
-
-
 
     # example: df = df[(df['Year'] == year) & (df['Quarter'] == quarter)]
-    if company_name
-    click_df = info_df['Name' == str(company_name)]
+    
 
-    # need code to drop lat/lon, etc, will wait until final csv shape is known
+    if company_name != '':
+        
+        try:
+            click_df = info_df[info_df['Name'] == company_name]
+            # print(click_df)
+        
+        except:
+            click_df = ''
 
+    else:
+        click_df = ''
 
     #returns a pandas dataframe object
+    # print('click df')
+    # print(click_df) # returns '' if no selection
     return click_df
 
 
@@ -116,84 +168,36 @@ def main():
 
     # LOAD DATA
 
-    # comp_loc_df = pd.read_csv(
-    #     filepath_or_buffer="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/2024-07-28 companies and locations.csv",
-    #     header=0
-    # )
+    info_df = pd.read_csv(
+        filepath_or_buffer="C:/Users/sfsul/Coding Files/Supplementary Files/BioeconomyWebSupp/Current/2024-09-27 current_bioeconomy_df.csv",
+        header=0,
+        skipinitialspace=True,
+        on_bad_lines='warn',
+        encoding= 'utf_8_sig'
+    )
 
-    # records = []
+    # print(info_df.shape)
     
-    # def convert_unknown(name, lat_val, lon_val):
-    
-    #     if lat_val == "Unknown":
-    #         return [name, 0,0]
-    #     else:
-    #         return [name, float(lat_val),float(lon_val)]
-
-
-    # records = [convert_unknown(x,y,z) for x,y,z in zip(comp_loc_df['Name'],comp_loc_df['Latitude'],comp_loc_df['Longitude']
-    # )]
-
     # DISPLAY FILTERS AND MAP
 
-    map = folium.Map(location=[39.8283,-98.5795], zoom_start=1, tiles='CartoDB positron') #scrollWheelZoom=False,
-
-    for record in records: # THIS WILL NEED TO BE MODIFIED
-        coords = (record[1],record[2])
-        folium.Marker(coords, popup=record[0]).add_to(map)
-
-    st_map = st_folium(map, use_container_width=True, height=450)
-
-    # And below should be a table with more information about the selected company
-
-    search_choice, multi_choices = display_sidebar_filters(info_df)
-    company_name = display_map(info_df, search_choice, multi_choices)
+    multi_choices = display_sidebar_filters(info_df)
+    company_name = display_map(info_df, multi_choices)
     company_info_df = display_company_details(info_df, company_name)
 
+
     # DISPLAY METRICS
-    st.subheader(f'{company_name} Facts')
+    
     if company_name != '':
+        st.subheader(f'{company_name} Facts')
         st.dataframe(data = company_info_df)
-
-    # display a dataframe for the selected company
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
+    else:
+        st.subheader('No Selection')
 
 
 
 
 if __name__ == "__main__":
     main()
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
